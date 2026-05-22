@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Be Vietnam Pro", system-ui, sans-serif;
+  --color-cream: #f5f0e8;
+  --color-teal-deep: #1a4d5c;
+  --color-teal-mid: #2d6a7a;
+  --color-accent: #e8a54b;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  background: linear-gradient(160deg, #e8f4f0 0%, var(--color-cream) 45%, #fde8d4 100%);
+  color: #1e293b;
+}

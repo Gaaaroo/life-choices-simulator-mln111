@@ -22,9 +22,18 @@ npm run preview
 
 Đặt PNG trong `public/image/` (đồng bộ với folder `image/` ở root):
 
-- `idle.png`, `study.png`, `game.png`, `soccer.png`, `social.png`
-- `phoneGame.png`, `work.png`, `sad.png`, `graduate.png`
-- `success-vest.png`, `laptopLearing.png`
+**Gốc:** `idle`, `study`, `game`, `soccer`, `social`, `phoneGame`, `work`, `sad`, `graduate`, `success-vest`, `laptopLearing`
+
+**G1:** `exam-sleep`, `friend-success`, `two-friends-game`, `minh-tired`, `mother-phone`, `lover-distance`, `mentor-coffee`, `english-study`
+
+## G1 (đã implement)
+
+- Quan hệ NPC (Minh, Khang, Mẹ, Linh, mentor) + panel affinity
+- Memory & payoff dài hạn (tiếng Anh → remote, game đêm → thi, Khang 15→28)
+- Beat cảm xúc, triết học v2 (không C = đúng)
+- Nhật ký cuộc đời ở màn kết thúc
+
+Chi tiết: `DESIGN_G1.md`
 
 ## Cấu trúc
 

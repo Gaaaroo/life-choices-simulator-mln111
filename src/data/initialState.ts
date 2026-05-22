@@ -1,4 +1,4 @@
-import type { GameState } from "../types/game";
+import type { GameState, Relationships } from "../types/game";
 
 export const INITIAL_STATS = {
   knowledge: 50,
@@ -7,6 +7,16 @@ export const INITIAL_STATS = {
   relationship: 20,
   discipline: 40,
 } as const;
+
+export function createInitialRelationships(): Relationships {
+  return {
+    minh: { affinity: 50, trust: 40, status: "close" },
+    mother: { affinity: 70, trust: 80, status: "close" },
+    bestFriend: { affinity: 60, trust: 55, status: "close" },
+    lover: { affinity: 0, trust: 0, status: "unknown" },
+    mentor: { affinity: 0, trust: 0, status: "unknown" },
+  };
+}
 
 export function createInitialGameState(): GameState {
   return {
@@ -19,7 +29,10 @@ export function createInitialGameState(): GameState {
       startupSuccess: false,
       gameHeavy: false,
     },
-    philosophy: { phenomenon: 0, essence: 0 },
+    memories: [],
+    relationships: createInitialRelationships(),
+    insight: { depth: 0 },
+    lifeJournal: [],
     journal: [],
     choiceHistory: [],
     currentSceneId: "home",

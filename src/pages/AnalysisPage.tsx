@@ -9,24 +9,20 @@ export function AnalysisPage() {
   return (
     <div className="mx-auto min-h-screen max-w-2xl px-4 py-10">
       <h1 className="text-center text-2xl font-bold text-teal-deep">
-        PHÂN TÍCH
+        Những gì bạn để lại
       </h1>
+      <p className="mt-2 text-center text-sm text-slate-500">
+        Không có đáp án đúng — chỉ có những gì bạn chọn.
+      </p>
 
       <div className="mt-8 space-y-4 rounded-2xl bg-white/90 p-6 shadow-lg">
         <div>
-          <p className="text-sm text-slate-600">
-            Bạn thường đánh giá qua hiện tượng:
-          </p>
-          <p className="text-3xl font-bold text-slate-800">
-            {analysis.phenomenonPercent}%
-          </p>
-        </div>
-        <div>
-          <p className="text-sm text-slate-600">
-            Bạn thường tìm hiểu bản chất:
-          </p>
+          <p className="text-sm text-slate-600">Độ sâu nhận thức (ẩn):</p>
           <p className="text-3xl font-bold text-teal-deep">
-            {analysis.essencePercent}%
+            {analysis.insightDepth}
+          </p>
+          <p className="mt-1 text-xs text-slate-500">
+            Mỗi lần bạn hỏi thêm thay vì kết luận vội.
           </p>
         </div>
 
@@ -34,7 +30,7 @@ export function AnalysisPage() {
 
         <div>
           <p className="mb-2 font-semibold text-teal-deep">
-            Bạn đã mở các khả năng:
+            Khả năng đã mở (có thể chưa thành hiện thực):
           </p>
           <ul className="list-inside list-disc space-y-1 text-sm text-slate-700">
             {analysis.possibilities.map((p) => (
@@ -43,9 +39,16 @@ export function AnalysisPage() {
           </ul>
         </div>
 
-        <p className="rounded-lg bg-teal-deep/10 p-3 text-sm italic text-teal-deep">
-          Khả năng chỉ thành hiện thực khi đủ điều kiện.
-        </p>
+        <hr className="border-slate-200" />
+
+        <div>
+          <p className="mb-2 font-semibold text-teal-deep">Tự hỏi:</p>
+          <ul className="space-y-2 text-sm italic text-slate-600">
+            {analysis.reflectionQuestions.map((q) => (
+              <li key={q}>{q}</li>
+            ))}
+          </ul>
+        </div>
       </div>
 
       <div className="mt-8 text-center">

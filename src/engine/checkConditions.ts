@@ -1,5 +1,6 @@
 import type { GameFlags, GameState, StatKey } from "../types/game";
 import type { Conditions } from "../types/story";
+import { hasMemory } from "./hasMemory";
 
 export function checkConditions(
   state: GameState,
@@ -12,6 +13,21 @@ export function checkConditions(
     if (state.flags[conditions.flag as keyof GameFlags] !== expected) {
       return false;
     }
+  }
+
+  if (conditions.memory && !hasMemory(state, conditions.memory)) {
+    return false;
+  }
+
+  if (conditions.notMemory && hasMemory(state, conditions.notMemory)) {
+    return false;
+  }
+
+  if (conditions.npcAffinity) {
+    const { npc, gte, lte } = conditions.npcAffinity;
+    const value = state.relationships[npc].affinity;
+    if (gte !== undefined && value < gte) return false;
+    if (lte !== undefined && value > lte) return false;
   }
 
   const statKeys: StatKey[] = [

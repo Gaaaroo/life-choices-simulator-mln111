@@ -11,6 +11,14 @@ export const IMAGE_FILES = {
   graduate: "graduate.png",
   successVest: "success-vest.png",
   laptopLearning: "laptopLearing.png",
+  examSleep: "exam-sleep.png",
+  friendSuccess: "friend-success.png",
+  friendsGame: "two-friends-game.png",
+  minhTired: "minh-tired.png",
+  motherPhone: "mother-phone.png",
+  loverSad: "lover-distance.png",
+  mentorCoffee: "mentor-coffee.png",
+  englishStudy: "english-study.png",
 } as const;
 
 export type ImageKey = keyof typeof IMAGE_FILES;

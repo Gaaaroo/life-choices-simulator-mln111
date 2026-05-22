@@ -1,5 +1,5 @@
 import { CharacterPortrait } from "../components/CharacterPortrait";
-import { EndingTimeline } from "../components/EndingTimeline";
+import { LifeJournal } from "../components/LifeJournal";
 import { StatPanel } from "../components/layout/StatPanel";
 import { useGameStore } from "../store/gameStore";
 
@@ -11,8 +11,10 @@ export function EndingPage() {
   if (!ending) return null;
 
   return (
-    <div className="mx-auto min-h-screen max-w-4xl px-4 py-8">
-      <h1 className="text-center text-2xl font-bold text-teal-deep">Kết thúc</h1>
+    <div className="mx-auto min-h-screen max-w-3xl px-4 py-8">
+      <h1 className="text-center text-2xl font-bold text-teal-deep">
+        Một chương kết
+      </h1>
       <p className="mt-2 text-center text-slate-600">Bạn trở thành:</p>
       <h2 className="mt-1 text-center text-xl font-semibold text-accent">
         {ending.title}
@@ -28,8 +30,9 @@ export function EndingPage() {
         </div>
       </div>
 
-      <div className="mt-6">
-        <EndingTimeline history={game.choiceHistory} />
+      <div className="mt-8 rounded-2xl bg-white/90 p-6 shadow-md">
+        <h3 className="mb-4 font-bold text-teal-deep">Nhật ký cuộc đời</h3>
+        <LifeJournal entries={game.lifeJournal} />
       </div>
 
       <div className="mt-8 text-center">
@@ -38,7 +41,7 @@ export function EndingPage() {
           onClick={goToAnalysis}
           className="rounded-xl bg-teal-deep px-8 py-3 font-semibold text-white hover:bg-teal-mid"
         >
-          Xem phân tích triết học
+          Nhìn lại
         </button>
       </div>
     </div>

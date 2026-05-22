@@ -1,11 +1,15 @@
 import { create } from "zustand";
+import { collectLifeJournal } from "../data/journalTemplates";
 import { resolveEnding, type EndingResult } from "../data/endings";
 import { createInitialGameState } from "../data/initialState";
-import { getSceneById } from "./selectors";
-import { applyEffects } from "../engine/applyEffects";
+import { applyChoice } from "../engine/applyChoice";
+import { hasMemory } from "../engine/hasMemory";
+import { renderJournalTemplate } from "../data/journalTemplates";
+import { resolveChoiceNext, resolveNarrativeNext } from "../engine/resolveNextScene";
 import type { ImageKey } from "../constants/images";
 import type { AppScreen, GameState } from "../types/game";
-import type { Choice, Scene } from "../types/story";
+import type { Choice } from "../types/story";
+import { getSceneById } from "./selectors";
 
 export type PhilosophyReveal = {
   title: string;
@@ -18,6 +22,7 @@ type GameStore = {
   game: GameState;
   portraitKey: ImageKey;
   lastFeedback: string[];
+  innerMonologue: string | null;
   philosophyReveal: PhilosophyReveal | null;
   pendingNextSceneId: string | null;
   ending: EndingResult | null;
@@ -45,9 +50,84 @@ function resolveStartup(game: GameState): GameState {
     journal: [
       ...game.journal,
       success
-        ? "Startup của bạn vượt qua giai đoạn khó."
-        : "Startup thất bại — khả năng chưa đủ điều kiện.",
+        ? "Startup vượt qua giai đoạn khó — không phải vì may."
+        : "Startup dừng lại — khả năng có, điều kiện chưa đủ.",
     ],
+  };
+}
+
+function onEnterScene(game: GameState, sceneId: string): GameState {
+  let g = game;
+
+  if (sceneId === "bf_mirror_28") {
+    g = {
+      ...g,
+      relationships: {
+        ...g.relationships,
+        bestFriend: {
+          ...g.relationships.bestFriend,
+          status: "success",
+          affinity: Math.min(100, g.relationships.bestFriend.affinity + 5),
+        },
+      },
+    };
+    if (!g.lifeJournal.some((e) => e.templateId === "j28_bf_mirror")) {
+      g = {
+        ...g,
+        lifeJournal: [
+          ...g.lifeJournal,
+          {
+            age: 28,
+            text: "Khang thành công. Bạn vẫn đang tìm hướng đi.",
+            templateId: "j28_bf_mirror",
+          },
+        ],
+      };
+    }
+  }
+
+  if (sceneId === "age18_intro") {
+    const failText = renderJournalTemplate("j18_exam_fail", g);
+    if (
+      failText &&
+      !g.lifeJournal.some((e) => e.templateId === "j18_exam_fail")
+    ) {
+      g = {
+        ...g,
+        lifeJournal: [
+          ...g.lifeJournal,
+          { age: 18, text: failText, templateId: "j18_exam_fail" },
+        ],
+      };
+    }
+  }
+
+  if (sceneId === "age28_intro" && hasMemory(g, "english_started_15")) {
+    g = {
+      ...g,
+      journal: [
+        ...g.journal,
+        "Một email remote — tiếng Anh mùa hè giờ có giá.",
+      ],
+    };
+  }
+
+  return g;
+}
+
+function navigateTo(
+  game: GameState,
+  sceneId: string,
+  portraitKey: ImageKey,
+): { game: GameState; portraitKey: ImageKey } {
+  const entered = onEnterScene(
+    { ...game, currentSceneId: sceneId },
+    sceneId,
+  );
+  const scene = getSceneById(sceneId);
+  return {
+    game: entered,
+    portraitKey: scene?.image ?? portraitKey,
   };
 }
 
@@ -56,6 +136,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   game: createInitialGameState(),
   portraitKey: "idle",
   lastFeedback: [],
+  innerMonologue: null,
   philosophyReveal: null,
   pendingNextSceneId: null,
   ending: null,
@@ -67,6 +148,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       game: createInitialGameState(),
       portraitKey: "idle",
       lastFeedback: [],
+      innerMonologue: null,
       philosophyReveal: null,
       pendingNextSceneId: null,
       ending: null,
@@ -81,6 +163,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       game,
       portraitKey: "idle",
       lastFeedback: [],
+      innerMonologue: null,
       philosophyReveal: null,
       pendingNextSceneId: null,
       startupMessage: null,
@@ -89,7 +172,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   continueNarrative: () => {
     const scene = getSceneById(get().game.currentSceneId);
-    if (!scene?.next) return;
+    if (!scene) return;
+
+    if (scene.id === "home") {
+      get().startGame();
+      return;
+    }
 
     let game = get().game;
     let portraitKey = get().portraitKey;
@@ -98,81 +186,40 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (scene.id === "age28_startup_result" && game.flags.startupAttempted) {
       game = resolveStartup(game);
       startupMessage = game.flags.startupSuccess
-        ? "Startup thành công nhờ kỹ năng và quan hệ!"
-        : "Startup thất bại — thiếu điều kiện để hiện thực hóa khả năng.";
+        ? "Khang nhắn: \"Đúng là khó — nhưng mày làm được.\" Còn startup — mày cũng làm được."
+        : "Tiền cạn. Team tan. Bạn ngồi trong phòng trọ — 28 tuổi, không biết bước tiếp.";
       portraitKey = game.flags.startupSuccess ? "successVest" : "sad";
     }
 
-    if (scene.id === "home") {
-      get().startGame();
-      return;
-    }
+    const dynamicNext = resolveNarrativeNext(
+      scene.id,
+      game,
+      scene.next,
+    );
+    const nextId = dynamicNext || scene.next;
+    if (!nextId) return;
 
-    if (scene.next === "analysis") {
+    if (nextId === "analysis") {
       get().goToAnalysis();
       return;
     }
 
-    const nextScene = getSceneById(scene.next);
-    const nextKey = nextScene?.image ?? portraitKey;
-
+    const nav = navigateTo(game, nextId, portraitKey);
     set({
-      game: { ...game, currentSceneId: scene.next },
-      portraitKey: nextKey,
+      game: nav.game,
+      portraitKey: nav.portraitKey,
       startupMessage,
       lastFeedback: [],
+      innerMonologue: null,
     });
   },
 
   selectChoice: (choice: Choice) => {
-    let game = get().game;
     const scene = getSceneById(get().game.currentSceneId);
     if (!scene) return;
 
-    game = applyEffects(game, choice.effects);
-
-    if (choice.flag) {
-      game = {
-        ...game,
-        flags: { ...game.flags, [choice.flag]: true },
-      };
-    }
-
-    if (choice.philosophy === "phenomenon") {
-      game = {
-        ...game,
-        philosophy: {
-          ...game.philosophy,
-          phenomenon: game.philosophy.phenomenon + 1,
-        },
-      };
-    } else if (choice.philosophy === "essence") {
-      game = {
-        ...game,
-        philosophy: {
-          ...game.philosophy,
-          essence: game.philosophy.essence + 1,
-        },
-      };
-    }
-
-    if (choice.journal) {
-      game = { ...game, journal: [...game.journal, choice.journal] };
-    }
-
-    game = {
-      ...game,
-      choiceHistory: [
-        ...game.choiceHistory,
-        {
-          sceneId: scene.id,
-          choiceId: choice.id,
-          label: choice.timelineLabel ?? choice.label,
-          age: scene.age,
-        },
-      ],
-    };
-
+    const nextId = resolveChoiceNext(choice.next, get().game);
+    const { game, innerMonologue } = applyChoice(get().game, scene, choice);
     const portraitKey = choice.imageAfter ?? get().portraitKey;
 
     const reveal =
@@ -189,17 +236,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
         game,
         portraitKey,
         lastFeedback: choice.feedback ?? [],
+        innerMonologue,
         philosophyReveal: reveal,
-        pendingNextSceneId: choice.next,
+        pendingNextSceneId: nextId,
       });
       return;
     }
 
-    if (choice.next === "ending") {
+    if (nextId === "ending") {
       set({
         game,
         portraitKey,
         lastFeedback: choice.feedback ?? [],
+        innerMonologue,
         philosophyReveal: null,
         pendingNextSceneId: null,
       });
@@ -207,11 +256,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
       return;
     }
 
-    const nextScene = getSceneById(choice.next);
+    const nav = navigateTo(game, nextId, portraitKey);
     set({
-      game: { ...game, currentSceneId: choice.next },
-      portraitKey: nextScene?.image ?? portraitKey,
+      game: nav.game,
+      portraitKey: nav.portraitKey,
       lastFeedback: choice.feedback ?? [],
+      innerMonologue,
       philosophyReveal: null,
       pendingNextSceneId: null,
     });
@@ -220,20 +270,27 @@ export const useGameStore = create<GameStore>((set, get) => ({
   dismissPhilosophy: () => {
     const nextId = get().pendingNextSceneId;
     if (!nextId) return;
-    const nextScene = getSceneById(nextId);
+    const resolved = resolveChoiceNext(nextId, get().game);
+    const nav = navigateTo(get().game, resolved, get().portraitKey);
     set({
-      game: { ...get().game, currentSceneId: nextId },
-      portraitKey: nextScene?.image ?? get().portraitKey,
+      game: nav.game,
+      portraitKey: nav.portraitKey,
       philosophyReveal: null,
       pendingNextSceneId: null,
       lastFeedback: [],
+      innerMonologue: null,
     });
   },
 
   goToEnding: () => {
-    const ending = resolveEnding(get().game);
+    const game = {
+      ...get().game,
+      lifeJournal: collectLifeJournal(get().game),
+    };
+    const ending = resolveEnding(game);
     set({
       screen: "ending",
+      game,
       ending,
       portraitKey: ending.image,
     });
@@ -243,7 +300,3 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ screen: "analysis" });
   },
 }));
-
-export function isPlayableScene(scene: Scene): boolean {
-  return scene.type !== "narrative" || Boolean(scene.next);
-}

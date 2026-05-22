@@ -1,4 +1,5 @@
 import type { ImageKey } from "../constants/images";
+import { hasMemory } from "../engine/hasMemory";
 import type { GameState } from "../types/game";
 
 export type EndingResult = {
@@ -26,6 +27,29 @@ const RULES: EndingRule[] = [
     image: "successVest",
     priority: 100,
     test: (s) => s.flags.gameHeavy && s.flags.learnedSkill,
+  },
+  {
+    id: "bf_backed",
+    title: "Được Khang tin tưởng",
+    description:
+      "Tiền năm 18 không mất — nó quay lại dưới dạng cơ hội. Lòng tin có giá.",
+    image: "friendSuccess",
+    priority: 95,
+    test: (s) =>
+      hasMemory(s, "bf_borrowed_18") &&
+      s.relationships.bestFriend.affinity >= 55,
+  },
+  {
+    id: "remote_worker",
+    title: "Làm remote quốc tế",
+    description:
+      "Tiếng Anh mùa hè tuổi 15 — mười ba năm sau mới gọi đúng tên.",
+    image: "laptopLearning",
+    priority: 85,
+    test: (s) =>
+      hasMemory(s, "english_started_15") &&
+      s.stats.money >= 50 &&
+      !s.flags.startupAttempted,
   },
   {
     id: "founder",

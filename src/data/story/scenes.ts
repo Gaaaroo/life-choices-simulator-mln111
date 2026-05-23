@@ -72,7 +72,7 @@ export const scenes: Scene[] = [
       },
       {
         id: "social",
-        label: "Đi chơi bạn bè",
+        label: "Đi chơi với bạn bè",  
         effects: { relationship: 15, money: -5 },
         imageAfter: "social",
         feedback: ["+15 Quan hệ"],
@@ -88,7 +88,7 @@ export const scenes: Scene[] = [
     type: "event",
     age: 15,
     image: "phoneGame",
-    text: "Khang rủ: \"Rank xuyên đêm không? Minh cũng vào.\"",
+    text: "Khang rủ: \"Rank xuyên đêm không? Minh cũng vào. Bạn có tham gia không?\"",
     choices: [
       {
         id: "go_all",

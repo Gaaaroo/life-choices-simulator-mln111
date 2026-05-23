@@ -1,9 +1,11 @@
 import { computeAnalysis } from "../engine/computeAnalysis";
+import { useAppStore } from "../store/appStore";
 import { useGameStore } from "../store/gameStore";
 
 export function AnalysisPage() {
   const game = useGameStore((s) => s.game);
   const resetAll = useGameStore((s) => s.resetAll);
+  const goToMenu = useAppStore((s) => s.goToMenu);
   const analysis = computeAnalysis(game);
 
   return (
@@ -51,13 +53,20 @@ export function AnalysisPage() {
         </div>
       </div>
 
-      <div className="mt-8 text-center">
+      <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
         <button
           type="button"
           onClick={resetAll}
           className="rounded-xl border-2 border-teal-deep px-8 py-3 font-semibold text-teal-deep hover:bg-teal-deep hover:text-white"
         >
           Chơi lại từ đầu
+        </button>
+        <button
+          type="button"
+          onClick={goToMenu}
+          className="rounded-xl px-8 py-3 text-sm text-slate-500 hover:text-teal-deep"
+        >
+          Menu chính
         </button>
       </div>
     </div>

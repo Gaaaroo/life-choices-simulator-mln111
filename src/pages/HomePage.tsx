@@ -1,11 +1,20 @@
 import { imageUrl } from "../constants/images";
+import { useAppStore } from "../store/appStore";
 import { useGameStore } from "../store/gameStore";
 
 export function HomePage() {
   const startGame = useGameStore((s) => s.startGame);
+  const goToMenu = useAppStore((s) => s.goToMenu);
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-4xl flex-col items-center justify-center px-4 py-10 text-center">
+    <div className="relative mx-auto flex min-h-screen max-w-4xl flex-col items-center justify-center px-4 py-10 text-center">
+      <button
+        type="button"
+        onClick={goToMenu}
+        className="absolute left-4 top-4 text-sm text-slate-500 transition hover:text-teal-deep"
+      >
+        ← Menu chính
+      </button>
       <img
         src={imageUrl("idle")}
         alt=""
@@ -33,3 +42,4 @@ export function HomePage() {
     </div>
   );
 }
+
